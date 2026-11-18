@@ -50,6 +50,7 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
   const [fallbackText, setFallbackText] = useState("");
   const [year, setYear] = useState<number | null>(null);
   const nameRef = useRef<HTMLInputElement>(null);
+  const emailRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setYear(new Date().getFullYear());
@@ -68,24 +69,33 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     const name = String(data.get("name") ?? "").trim();
+    const visitorEmail = String(data.get("email") ?? "").trim();
     const interest = String(data.get("interest") ?? "");
     const message = String(data.get("message") ?? "").trim();
 
     if (!name) {
       setFallbackText("");
-      setResult("Please enter your name so we can personalize your introduction.");
+      setResult("Please enter your name so we know who is contacting us.");
       nameRef.current?.focus();
       return;
     }
 
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(visitorEmail)) {
+      setFallbackText("");
+      setResult("Please enter your email so we can reply.");
+      emailRef.current?.focus();
+      return;
+    }
+
     const subject = `Introduction to FiveNetwork — ${interest}`;
-    const body = `Hello FiveNetwork,\n\nMy name is ${name}. I'm interested in ${interest.toLowerCase()}.\n\n${message || "I would like to learn more about FiveNetwork."}\n\nThank you,\n${name}`;
+    const body = `Hello FiveNetwork,\n\nMy name is ${name}.\nMy email is ${visitorEmail}.\nI'm interested in ${interest.toLowerCase()}.\n\n${message || "I would like to learn more about FiveNetwork."}\n\nThank you,\n${name}\n${visitorEmail}`;
     const email = contactEmail.trim();
 
     if (email) {
-      window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+      const href = `mailto:${email}?subject=${encodeURIComponent(subject)}&reply-to=${encodeURIComponent(visitorEmail)}&body=${encodeURIComponent(body)}`;
+      window.location.href = href;
       setFallbackText("");
-      setResult("Your email app should open with your message. Nothing has been sent automatically.");
+      setResult(`Your email app should open a message to ${email}. Send it to contact us.`);
       return;
     }
 
@@ -712,7 +722,7 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
             </div>
             <div className="contact-panel">
               <h3>Introduce yourself.</h3>
-              <p>Share a little about who you are, and we&apos;ll help you prepare a message to send.</p>
+              <p>Send your name and email to fivenetwork@pm.me to contact us.</p>
               <form id="contact-form" noValidate onSubmit={onSubmit}>
                 <div className="field-row">
                   <label htmlFor="contact-name">
@@ -726,16 +736,29 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
                       placeholder="Your name"
                     />
                   </label>
-                  <label htmlFor="contact-interest">
-                    I&apos;m interested in
-                    <select id="contact-interest" name="interest" defaultValue="Joining the talent network">
-                      <option value="Joining the talent network">Joining the network</option>
-                      <option value="Career development support">Career support</option>
-                      <option value="Employer partnerships">Employer partnerships</option>
-                      <option value="A general conversation">Something else</option>
-                    </select>
+                  <label htmlFor="contact-email">
+                    Your email
+                    <input
+                      ref={emailRef}
+                      id="contact-email"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      inputMode="email"
+                      required
+                      placeholder="you@email.com"
+                    />
                   </label>
                 </div>
+                <label htmlFor="contact-interest">
+                  I&apos;m interested in
+                  <select id="contact-interest" name="interest" defaultValue="Joining the talent network">
+                    <option value="Joining the talent network">Joining the network</option>
+                    <option value="Career development support">Career support</option>
+                    <option value="Employer partnerships">Employer partnerships</option>
+                    <option value="A general conversation">Something else</option>
+                  </select>
+                </label>
                 <label htmlFor="contact-message">
                   Your message
                   <textarea
@@ -746,7 +769,7 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
                   />
                 </label>
                 <button className="btn btn-mint contact-submit" type="submit">
-                  <span>Prepare my introduction</span>
+                  <span>Submit</span>
                   <span aria-hidden="true">↗</span>
                 </button>
                 <div id="contact-result" className="contact-result" role="status" aria-live="polite">
@@ -757,9 +780,8 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
                 </div>
               </form>
               <p className="form-footnote">
-                This page does not send or store your information. It prepares a message you can copy.
-                Set <code>NEXT_PUBLIC_FIVENETWORK_CONTACT_EMAIL</code> to a verified business email to
-                open an email draft instead.
+                Submit opens a message from your email to fivenetwork@pm.me. Send it there to contact us.
+                This page does not store your information.
               </p>
             </div>
           </div>
@@ -776,6 +798,10 @@ export default function LandingPage({ contactEmail }: LandingPageProps) {
             <br />
             Building careers.
           </p>
+          <div className="footer-contact">
+            <a href="mailto:fivenetwork@pm.me">Email: fivenetwork@pm.me</a>
+            <a href="tel:+17818097227">Phone: +1 781 809 7227</a>
+          </div>
           <a href="#top" className="backtop">
             Back to top ↑
           </a>
